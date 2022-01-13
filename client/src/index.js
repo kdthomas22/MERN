@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import "./index.css";
 // Keeps track of store (global state) and allows access to state from any where in app
 import { Provider } from "react-redux";
 import { createStore, applyMiddleware, compose } from "redux";

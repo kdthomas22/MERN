@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useStyles from "./styles";
 import { TextField, Button, Typography, Paper } from "@material-ui/core";
-import { useDispatch } from "react-redux";
-import { createPost } from "../../actions/posts";
+import { useDispatch, useSelector } from "react-redux";
+import { createPost, updatePost } from "../../actions/posts";
 
-const Form = () => {
+const Form = ({ currentId, setCurrentId }) => {
   const [postData, setPostData] = useState({
     creator: "",
     title: "",
@@ -13,17 +13,37 @@ const Form = () => {
     selectedFile: "",
   });
 
+  const post = useSelector((state) =>
+    currentId ? state.posts.find((p) => p._id === currentId) : null
+  );
   const classes = useStyles();
   const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
     // prevents refresh in browser
     e.preventDefault();
-
-    dispatch(createPost(postData));
+    if (currentId) {
+      dispatch(updatePost(currentId, postData));
+    } else {
+      dispatch(createPost(postData));
+    }
+    clear();
   };
 
-  const clear = () => {};
+  const clear = () => {
+    setCurrentId(null);
+    setPostData({
+      creator: "",
+      title: "",
+      message: "",
+      tags: "",
+      selectedFile: "",
+    });
+  };
+
+  useEffect(() => {
+    if (post) setPostData(post);
+  }, [post]);
 
   return (
     <Paper className={classes.paper}>
@@ -33,7 +53,9 @@ const Form = () => {
         className={`${classes.root} ${classes.form}`}
         onSubmit={handleSubmit}
       >
-        <Typography variant="h6">Creating a Memory</Typography>
+        <Typography variant="h6">
+          {currentId ? "Editing" : "Creating"} a Memory
+        </Typography>
         <TextField
           name="creator"
           variant="outlined"
@@ -75,7 +97,7 @@ const Form = () => {
           value={postData.tags}
           onChange={(e) =>
             /*spread the other postData values and then specify the value you want to change*/
-            setPostData({ ...postData, tags: e.target.value })
+            setPostData({ ...postData, tags: e.target.value.split(",") })
           }
         />
         <Button
@@ -84,6 +106,7 @@ const Form = () => {
           color="primary"
           size="large"
           type="submit"
+          disabled={postData.title === ""}
           fullWidth
         >
           Submit
